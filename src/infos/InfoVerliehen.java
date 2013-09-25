@@ -7,6 +7,7 @@ import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -73,7 +74,7 @@ public class InfoVerliehen extends InfoComposite {
 		linkJumpToAusleihe.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				getShell().dispose();
+				getShell().close();
 				MainApplication.MAIN.selectAusleihe(info.getAusleihe());
 			}
 		});
@@ -85,7 +86,7 @@ public class InfoVerliehen extends InfoComposite {
 		linkJumpToSchueler.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				getShell().dispose();
+				getShell().close();
 				MainApplication.MAIN.selectSchueler(info.getSchueler());
 			}
 		});

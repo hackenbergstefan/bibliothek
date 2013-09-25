@@ -26,6 +26,9 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -188,6 +191,16 @@ public class AusleiheOverview extends TitleDialog {
 				}catch(NumberFormatException ex){}
 			}
 		});
+		txtSchueler.addFocusListener(new FocusAdapter() {
+			
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				try{
+					ausleihe.setS(Schueler.fromId(new Integer(txtSchueler.getText())));
+				}catch(NumberFormatException ex){}
+			}
+			
+		});
 		txtSchueler.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		ToolBar toolBar_1 = new ToolBar(grpScheler, SWT.FLAT | SWT.RIGHT);
@@ -336,7 +349,6 @@ public class AusleiheOverview extends TitleDialog {
 		DataBindingContext bindingContext = new DataBindingContext();
 		
 		
-		
 		//Schueler
 		final IObservableValue sObservable = BeansObservables.observeValue(ausleihe, "s");
 		IObservableValue target = SWTObservables.observeText(txtSchueler);
@@ -361,7 +373,9 @@ public class AusleiheOverview extends TitleDialog {
 				return "";
 			}
 		});
-		Binding binding = bindingContext.bindValue(target, sObservable, null, str);
+		UpdateValueStrategy strback = new UpdateValueStrategy();
+		strback.setBeforeSetValidator(new NullValidator());
+		Binding binding = bindingContext.bindValue(target, sObservable, strback, str);
 		ControlDecorationSupport.create(binding, SWT.LEFT | SWT.TOP);
 		
 		//Medium		
@@ -390,7 +404,9 @@ public class AusleiheOverview extends TitleDialog {
 				return "";
 			}
 		});
-		binding = bindingContext.bindValue(target, bObservable, null, str);
+		strback = new UpdateValueStrategy();
+		strback.setAfterGetValidator(new NullValidator());
+		binding = bindingContext.bindValue(target, bObservable, strback, str);
 		ControlDecorationSupport.create(binding, SWT.LEFT | SWT.TOP);
 		
 		//
@@ -400,7 +416,7 @@ public class AusleiheOverview extends TitleDialog {
 		target = SWTObservables.observeSelection(dateVon);
 		str = new UpdateValueStrategy();
 		str.setConverter(new Java2SqlDateConverter());
-		UpdateValueStrategy strback = new UpdateValueStrategy();
+		strback = new UpdateValueStrategy();
 		strback.setConverter(new Sql2JavaDateConverter());
 		binding = bindingContext.bindValue(target, vonObservable, strback, str);
 		
@@ -473,8 +489,10 @@ public class AusleiheOverview extends TitleDialog {
 			@Override
 			protected IStatus validate() {
 				if(bObservable.getValue() != null){
+					//if(ausleihe.getS()== null) return ValidationStatus.error(StringConstants.VALIDATION_ERROR_NONEMPTY);
+					//if(ausleihe.getB()== null) return ValidationStatus.error(StringConstants.VALIDATION_ERROR_NONEMPTY);
 					if(ausleihe.getB().isVerliehen((java.sql.Date)vonObservable.getValue(), (java.sql.Date)bisObservable.getValue(), ausleihe)) return  ValidationStatus.error(StringConstants.VALIDATION_ERROR_ALREADYVERLIEHEN);
-					else if(ausleihe.getB().isVorgemerkt((java.sql.Date)vonObservable.getValue(), (java.sql.Date)bisObservable.getValue(), ausleihe)) return  ValidationStatus.error(StringConstants.VALIDATION_ERROR_ALREADYVORGEMERKT);
+					if(ausleihe.getB().isVorgemerkt((java.sql.Date)vonObservable.getValue(), (java.sql.Date)bisObservable.getValue(), ausleihe)) return  ValidationStatus.error(StringConstants.VALIDATION_ERROR_ALREADYVORGEMERKT);
 				}
 				return ValidationStatus.ok(); 
 			}

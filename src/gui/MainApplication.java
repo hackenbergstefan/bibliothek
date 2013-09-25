@@ -14,6 +14,7 @@ import gui.views.MassiveAusleihe;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
 
@@ -26,6 +27,7 @@ import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.nebula.widgets.xviewer.util.internal.Strings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -47,6 +49,11 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
+
+import actions.StartAusleiheOverview;
+import actions.StartBuchOverview;
+import actions.StartMassiveAusleihe;
+import actions.StartSchuelerOverview;
 
 import print.PrintableUeberfaellig;
 import statistics.Statistics;
@@ -209,14 +216,7 @@ public class MainApplication {
 		tltmNeuesMediumHinzufgen.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				BuecherOverview view = new BuecherOverview(shlBibliothek, null);
-				view.open();
-				if(view.getReturnCode() == TitleAreaDialog.OK){
-					try{
-						buecherTableView.updateTable();
-						buecherTableView.selectBuch(view.getBuch());
-					}catch(Exception ex){}
-				}
+				new StartBuchOverview(null, shlBibliothek, buecherTableView).run();
 			}
 		});
 		tltmNeuesMediumHinzufgen.setImage(SWTResourceManager.getImage(MainApplication.class, "/icons/new.png"));
@@ -241,12 +241,7 @@ public class MainApplication {
 		tltmNeuenSchlerHinzufgen.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				SchuelerOverview view = new SchuelerOverview(shlBibliothek, null);
-				view.open();
-				if(view.getReturnCode() == TitleAreaDialog.OK){
-					schuelerTableView.updateTable();
-					schuelerTableView.selectSchueler(view.getSchueler());
-				}
+				new StartSchuelerOverview(null, shlBibliothek, schuelerTableView).run();
 			}
 		});
 		tltmNeuenSchlerHinzufgen.setImage(SWTResourceManager.getImage(MainApplication.class, "/icons/new.png"));
@@ -271,13 +266,12 @@ public class MainApplication {
 		tltmNeueAusleihe.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				AusleiheOverview a = new AusleiheOverview(shlBibliothek, null);
+				Ausleihe a = new Ausleihe();
 				try{
-					if(ausleihenTableView.txtSchuelerId.getText().length() != 0) a.getAusleihe().setS(Schueler.fromId(new Integer(ausleihenTableView.txtSchuelerId.getText())));
+					if(ausleihenTableView.txtSchuelerId.getText().length() != 0) a.setS(Schueler.fromId(new Integer(ausleihenTableView.txtSchuelerId.getText())));
 				}catch(NumberFormatException ex){}
-				a.open();
-				if(a.getReturnCode() == TitleAreaDialog.OK)
-					ausleihenTableView.updateTable();
+				
+				new StartAusleiheOverview(a, shlBibliothek, ausleihenTableView).run();
 			}
 		});
 		tltmNeueAusleihe.setImage(SWTResourceManager.getImage(MainApplication.class, "/icons/new.png"));
@@ -287,12 +281,11 @@ public class MainApplication {
 		tltmMassiveAusleihe.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				MassiveAusleihe aus = new MassiveAusleihe(shlBibliothek);
+				Ausleihe a = new Ausleihe();
 				try{
-					if(ausleihenTableView.txtSchuelerId.getText().length() != 0) aus.setSchueler(Schueler.fromId(new Integer(ausleihenTableView.txtSchuelerId.getText())));
+					if(ausleihenTableView.txtSchuelerId.getText().length() != 0) a.setS(Schueler.fromId(new Integer(ausleihenTableView.txtSchuelerId.getText())));
 				}catch(NumberFormatException ex){}
-				aus.open();
-				ausleihenTableView.updateTable();
+				new StartMassiveAusleihe(a, shlBibliothek, ausleihenTableView).run();
 			}
 		});
 		tltmMassiveAusleihe.setImage(SWTResourceManager.getImage(MainApplication.class, "/icons/massiveausleihen.png"));

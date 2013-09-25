@@ -45,8 +45,11 @@ public class TitleDialog extends TitleAreaDialog {
     @Override
     protected Control createButtonBar(Composite parent) {
     	initValues();
-    	return super.createButtonBar(parent);
+    	Control c = super.createButtonBar(parent);
+    	getButton(OK).setEnabled(false);
+    	return c;
     }
+
     
     protected void initValues(){
     	

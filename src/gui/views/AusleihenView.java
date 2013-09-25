@@ -18,6 +18,8 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import actions.StartAusleiheOverview;
+
 public class AusleihenView extends TitleAreaDialog {
 	private AusleihenTableView view;
 	private AusleihenTableView ausleihenTableView;
@@ -50,10 +52,7 @@ public class AusleihenView extends TitleAreaDialog {
 		tltmNewItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				AusleiheOverview a = new AusleiheOverview(getParentShell(), null);
-				a.open();
-				if(a.getReturnCode() == TitleAreaDialog.OK)
-					ausleihenTableView.updateTable();
+				new StartAusleiheOverview(null, getShell(), ausleihenTableView);
 			}
 		});
 		tltmNewItem.setToolTipText("Neue Ausleihe");

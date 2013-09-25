@@ -58,6 +58,8 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import actions.StartBuchOverview;
+
 import util.FontUtil;
 import util.WaitDialog;
 
@@ -357,11 +359,7 @@ public class BuecherTableView extends Composite {
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
 				if(!openOverviewOnDoubleClick) return;
-				BuecherOverview over = new BuecherOverview(getShell(), getBuch());
-				over.open();
-				if(over.getReturnCode() == BuecherOverview.CANCEL) return;
-				updateTable();
-				selectBuch(over.getBuch());
+				new StartBuchOverview(buch, getShell(), BuecherTableView.this).run();
 			}
 		});
 		table.addSelectionListener(new SelectionAdapter() {

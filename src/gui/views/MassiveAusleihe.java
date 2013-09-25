@@ -35,6 +35,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -100,9 +102,10 @@ public class MassiveAusleihe extends TitleDialog {
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public MassiveAusleihe(Shell parentShell) {
+	public MassiveAusleihe(Shell parentShell, Ausleihe a) {
 		super(parentShell);
 		setHelpAvailable(false);
+		if(a != null) ausleihe = a;
 	}
 
 	/**
@@ -145,6 +148,16 @@ public class MassiveAusleihe extends TitleDialog {
 					setSchueler(Schueler.fromId(new Integer(txtSchuelerID.getText())));
 				}catch(NumberFormatException ex){}
 			}
+		});
+		txtSchuelerID.addFocusListener(new FocusAdapter() {
+			
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				try{
+					ausleihe.setS(Schueler.fromId(new Integer(txtSchuelerID.getText())));
+				}catch(NumberFormatException ex){}
+			}
+			
 		});
 		GridData gd_txtSchuelerID = new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1);
 		gd_txtSchuelerID.widthHint = 223;
@@ -416,6 +429,7 @@ public class MassiveAusleihe extends TitleDialog {
 			a.setS(schueler);
 			a.setB(b);
 			a.eintragen();
+			if(buecherAus.lastElement().equals(b)) ausleihe = a;
 		}
 		super.okPressed();
 	}
@@ -445,7 +459,9 @@ public class MassiveAusleihe extends TitleDialog {
 				else return ((Schueler)fromObject).toNiceString();
 			}
 		});
-		Binding binding = dbc.bindValue(tar, obs, null, str);
+		UpdateValueStrategy strback = new UpdateValueStrategy();
+		strback.setAfterGetValidator(new NullValidator());
+		Binding binding = dbc.bindValue(tar, obs, strback, str);
 		ControlDecorationSupport.create(binding, SWT.TOP | SWT.LEFT);
 		
 		
@@ -455,7 +471,7 @@ public class MassiveAusleihe extends TitleDialog {
 		IObservableValue target = SWTObservables.observeSelection(dateTimeAusVon);
 		str = new UpdateValueStrategy();
 		str.setConverter(new Java2SqlDateConverter());
-		UpdateValueStrategy strback = new UpdateValueStrategy();
+		strback = new UpdateValueStrategy();
 		strback.setConverter(new Sql2JavaDateConverter());
 		binding = dbc.bindValue(target, vonObservable, strback, str);
 		
@@ -489,6 +505,10 @@ public class MassiveAusleihe extends TitleDialog {
 	}
 	private void updateTableAus(){
 		tableViewerAus.refresh();
+	}
+	
+	public Ausleihe getAusleihe(){
+		return ausleihe;
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {

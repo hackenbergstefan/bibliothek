@@ -44,6 +44,8 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import actions.StartSchuelerOverview;
+
 import util.FontUtil;
 import util.WaitDialog;
 
@@ -363,10 +365,7 @@ public class SchuelerTableView extends Composite {
 	
 	private void openSchueler(){
 		if(!openOverviewOnDoubleClick) return;
-		SchuelerOverview view = new SchuelerOverview(getShell(), getSchueler());
-		view.open();
-		updateTable();
-		selectSchueler(view.getSchueler());
+		new StartSchuelerOverview(schueler, getShell(), SchuelerTableView.this).run();
 	}
 	
 	private void schuelerSelected(SelectionEvent e){

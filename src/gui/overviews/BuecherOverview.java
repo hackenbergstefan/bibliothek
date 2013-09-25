@@ -1,5 +1,6 @@
 package gui.overviews;
 
+import gui.MainApplication;
 import gui.StringConstants;
 import gui.VerliehenLabel;
 import gui.tableviews.ComboKatLabelProvider;
@@ -64,7 +65,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import util.ISBNfromHTML;
 import util.TitleDialog;
-import actions.NewAusleiheAction;
+import actions.StartAusleiheOverview;
 
 public class BuecherOverview extends TitleDialog {
 	private DataBindingContext m_bindingContext;
@@ -182,9 +183,10 @@ public class BuecherOverview extends TitleDialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				close();
+				setReturnCode(CANCEL);
 				Ausleihe a = new Ausleihe();
 				a.setB(buch);
-				new NewAusleiheAction(a,getShell()).run();
+				new StartAusleiheOverview(a,getShell(),MainApplication.MAIN.ausleihenTableView).run();
 			}
 		});
 		btnAusleihen.setImage(SWTResourceManager.getImage(BuecherOverview.class, "/icons/ausleihen.png"));
@@ -196,10 +198,11 @@ public class BuecherOverview extends TitleDialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				close();
+				setReturnCode(CANCEL);
 				Ausleihe a = new Ausleihe();
 				a.setB(buch);
 				a.setVorgemerkt(true);
-				new NewAusleiheAction(a,getShell()).run();
+				new StartAusleiheOverview(a,getShell(),MainApplication.MAIN.ausleihenTableView).run();
 			}
 		});
 		btnVormerken.setImage(SWTResourceManager.getImage(BuecherOverview.class, "/icons/vormerken.png"));
@@ -541,7 +544,8 @@ public class BuecherOverview extends TitleDialog {
 		//
 		IObservableValue obs = SWTObservables.observeEnabled(btnAusleihen);
 		IObservableValue beanobs = BeansObservables.observeValue(buch, "verfuegbar");
-		bindingContext.bindValue(obs, beanobs, null, null);
+		strategy = new UpdateValueStrategy();
+		bindingContext.bindValue(obs, beanobs, null, strategy);
 		//
 		obs = SWTObservables.observeText(lblAnzahl);
 		beanobs = BeansObservables.observeValue(buch, "anzahl");

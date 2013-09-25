@@ -74,6 +74,13 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 							});
 						}
 					}
+					data.getRealm().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							data.addAll(vec);
+							vec.clear();
+						}
+					});
 					set.close();
 					state.close();
 				}catch(SQLException ex){

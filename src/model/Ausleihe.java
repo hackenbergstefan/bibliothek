@@ -222,9 +222,15 @@ public class Ausleihe implements IDefault{
 
 				Logger.logEvent("Ausleihe.update", toString());
 			}
+		
+			//check
+			if(Ausleihe.fromId(id) == null){ 
+				id=-1;
+				eintragen();
+			}
 			
 		}catch(SQLException ex){
-			ex.printStackTrace();
+			Logger.logError(ex.getMessage());
 		}
 
 	}
@@ -425,6 +431,13 @@ public class Ausleihe implements IDefault{
 							});
 						}
 					}
+					data.getRealm().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							data.addAll(vec);
+							vec.clear();
+						}
+					});
 					set.close();
 					state.close();
 				}catch(SQLException ex){
@@ -472,6 +485,13 @@ public class Ausleihe implements IDefault{
 							});
 						}
 					}
+					data.getRealm().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							data.addAll(vec);
+							vec.clear();
+						}
+					});
 					set.close();
 					state.close();
 				}catch(SQLException ex){
@@ -519,6 +539,13 @@ public class Ausleihe implements IDefault{
 							});
 						}
 					}
+					data.getRealm().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							data.addAll(vec);
+							vec.clear();
+						}
+					});
 					set.close();
 					state.close();
 				}catch(SQLException ex){
@@ -566,6 +593,13 @@ public class Ausleihe implements IDefault{
 							});
 						}
 					}
+					data.getRealm().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							data.addAll(vec);
+							vec.clear();
+						}
+					});
 					set.close();
 					state.close();
 				}catch(SQLException ex){
@@ -612,6 +646,13 @@ public class Ausleihe implements IDefault{
 							});
 						}
 					}
+					data.getRealm().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							data.addAll(vec);
+							vec.clear();
+						}
+					});
 					set.close();
 					state.close();
 				}catch(SQLException ex){

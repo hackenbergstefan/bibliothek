@@ -58,6 +58,8 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import actions.StartAusleiheOverview;
+
 import util.DateUtils;
 import util.WaitDialog;
 
@@ -297,11 +299,7 @@ public class AusleihenTableView extends Composite {
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
 				if(!openOverviewOnDoubleClick) return;
-				AusleiheOverview view = new AusleiheOverview(getShell(), getAusleihe());
-				view.open();
-				if(view.getReturnCode() == AusleiheOverview.CANCEL) return;
-				updateTable();
-				selectAusleihe(view.getAusleihe());
+				new StartAusleiheOverview(ausleihe, getShell(), AusleihenTableView.this).run();
 			}
 		});
 		table.setLinesVisible(true);
