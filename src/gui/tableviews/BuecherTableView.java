@@ -5,6 +5,7 @@ import gui.validators.PercentageConverter;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.WriteAbortedException;
 import java.util.Vector;
 
 import model.Buch;
@@ -14,8 +15,14 @@ import model.Kategorie;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.PojoObservables;
+import org.eclipse.core.databinding.observable.IObservable;
+import org.eclipse.core.databinding.observable.list.IListChangeListener;
+import org.eclipse.core.databinding.observable.list.ListChangeEvent;
+import org.eclipse.core.databinding.observable.list.ObservableList;
+import org.eclipse.core.databinding.observable.list.WritableList;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
+import org.eclipse.jface.databinding.viewers.ObservableListContentProvider;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -103,7 +110,7 @@ public class BuecherTableView extends Composite {
 //	private TableColumnLayout colLay;
 	private Label label;
 	
-	private Vector<Buch> data = null;
+	private final WritableList data = new WritableList();
 	
 	
 	/**
@@ -506,18 +513,12 @@ public class BuecherTableView extends Composite {
 	}
 	
 	public void updateTable(){
-		WaitDialog.show(getShell(), this,new Runnable() {
-			
-			@Override
-			public void run() {
-				data = Buch.getAllBuecher();
-				tableViewer.setInput(data);
-			}
-		});
+		Buch.getAllBuecher(data);
 	}
 	
 	private void setProperties(){
-		tableViewer.setContentProvider(new ArrayContentProvider());
+		tableViewer.setContentProvider(new ObservableListContentProvider());
+		tableViewer.setInput(data);
 		tableViewer.addFilter(filter);
 		tableViewer.setComparator(comparator);
 		
@@ -548,6 +549,7 @@ public class BuecherTableView extends Composite {
 //		colLay.setColumnData(tblclmnArt, new ColumnWeightData(5));
 //		colLay.setColumnData(tblclmnVerliehen, new ColumnWeightData(10));
 		
+				
 		initBindings();
 		
 		updateTable();
@@ -592,13 +594,32 @@ public class BuecherTableView extends Composite {
 		return buch;
 	}
 	
-	public void selectBuch(Buch b){
+	public void selectBuch(final Buch b){
 		if(b != null && b.getId() != -1){
-			changes.firePropertyChange("buch", buch, buch = b);
-			tableViewer.setSelection(new StructuredSelection(b),true);
-			table.forceFocus();
-			enterValues(b);
+			if(data.contains(b)){
+				selectBuchNow(b);
+			}else data.addListChangeListener(new IListChangeListener() {
+				
+				@Override
+				public void handleListChange(ListChangeEvent arg0) {
+					if(data.contains(b)){
+						selectBuchNow(b);
+						data.removeListChangeListener(this);
+					}
+				}
+			});
+			
 		}
+	}
+	
+	private void selectBuchNow(Buch b){
+		clearValues();
+		updateFilter();
+		
+		changes.firePropertyChange("buch", buch, buch = b);
+		tableViewer.setSelection(new StructuredSelection(b),true);
+		table.forceFocus();
+		enterValues(b);
 	}
 
 	
@@ -690,5 +711,7 @@ public class BuecherTableView extends Composite {
 		str = new UpdateValueStrategy();
 		str.setConverter(new PercentageConverter(c, 0.025));
 		dbc.bindValue(mod, tar, null, str);
+		
+		
 	}
 }

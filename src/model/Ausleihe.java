@@ -7,7 +7,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Vector;
+
+import org.eclipse.core.databinding.observable.list.WritableList;
 
 import log.Logger;
 import util.DateUtils;
@@ -208,20 +211,22 @@ public class Ausleihe implements IDefault{
 					id,s.getId(),b.getId(),isVorgemerkt?1:0, von, bis,anmerkungen));
 				set.close();
 				state.close();
+
+				Logger.logEvent("Ausleihe.eintragen", toString());
 			}else{
 				Statement state = DBManager.getIt().getConnection().createStatement();
 				state.execute(String.format(
 						"update "+DBManager.TABLE_AUSLEIHEN+" set s_id=%d, b_id=%d, vorgemerkt=%d, von=to_date('%s', 'yyyy-mm-dd'), bis=to_date('%s', 'yyyy-mm-dd'), anmerkungen='%s' where id = %d",
 						s.getId(),b.getId(),isVorgemerkt?1:0, von, bis, anmerkungen,id));
 				state.close();
+
+				Logger.logEvent("Ausleihe.update", toString());
 			}
 			
 		}catch(SQLException ex){
 			ex.printStackTrace();
 		}
-		Logger.logError("blub!");
 
-		Logger.logEvent("Ausleihe.eintragen", toString());
 	}
 	
 	public void zuruckgeben(){
@@ -353,6 +358,14 @@ public class Ausleihe implements IDefault{
 		return false;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof Ausleihe){
+			if(((Ausleihe) obj).id == id) return true;
+		}
+		return false;
+	}
+	
 	
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
         changes.addPropertyChangeListener(listener);
@@ -391,6 +404,37 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
+	public static void getAllAusleihen(final WritableList data){
+		data.clear();
+		new Thread(){
+			public void run() {
+				try{
+					Statement state = DBManager.getIt().getConnection().createStatement();
+					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+"");
+					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					while(set.next()){
+						Ausleihe b = new Ausleihe(set);
+						vec.add(b);
+						if(vec.size() >= 10){
+							data.getRealm().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									data.addAll(vec);
+									vec.clear();
+								}
+							});
+						}
+					}
+					set.close();
+					state.close();
+				}catch(SQLException ex){
+					Logger.logError(ex.getMessage());
+				}
+			}
+		}.start();
+		
+	}
+	
 	public static Vector<Ausleihe> getAllDone(){
 		Vector<Ausleihe> ret = new Vector<Ausleihe>();
 		try{
@@ -405,6 +449,37 @@ public class Ausleihe implements IDefault{
 			ex.printStackTrace();
 		}
 		return ret;
+	}
+	
+	public static void getAllDone(final WritableList data){
+		data.clear();
+		new Thread(){
+			public void run() {
+				try{
+					Statement state = DBManager.getIt().getConnection().createStatement();
+					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 1 order by rueckdate desc");
+					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					while(set.next()){
+						Ausleihe b = new Ausleihe(set);
+						vec.add(b);
+						if(vec.size() >= 10){
+							data.getRealm().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									data.addAll(vec);
+									vec.clear();
+								}
+							});
+						}
+					}
+					set.close();
+					state.close();
+				}catch(SQLException ex){
+					Logger.logError(ex.getMessage());
+				}
+			}
+		}.start();
+		
 	}
 	
 	public static Vector<Ausleihe> getAllTooLate(){
@@ -423,6 +498,37 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
+	public static void getAllTooLate(final WritableList data){
+		data.clear();
+		new Thread(){
+			public void run() {
+				try{
+					Statement state = DBManager.getIt().getConnection().createStatement();
+					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0 AND bis < sysdate-1 order by bis asc");
+					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					while(set.next()){
+						Ausleihe b = new Ausleihe(set);
+						vec.add(b);
+						if(vec.size() >= 10){
+							data.getRealm().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									data.addAll(vec);
+									vec.clear();
+								}
+							});
+						}
+					}
+					set.close();
+					state.close();
+				}catch(SQLException ex){
+					Logger.logError(ex.getMessage());
+				}
+			}
+		}.start();
+		
+	}
+	
 	public static Vector<Ausleihe> getAllOpen(){
 		Vector<Ausleihe> ret = new Vector<Ausleihe>();
 		try{
@@ -439,6 +545,36 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
+	public static void getAllOpen(final WritableList data){
+		data.clear();
+		new Thread(){
+			public void run() {
+				try{
+					Statement state = DBManager.getIt().getConnection().createStatement();
+					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0");
+					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					while(set.next()){
+						Ausleihe b = new Ausleihe(set);
+						vec.add(b);
+						if(vec.size() >= 10){
+							data.getRealm().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									data.addAll(vec);
+									vec.clear();
+								}
+							});
+						}
+					}
+					set.close();
+					state.close();
+				}catch(SQLException ex){
+					Logger.logError(ex.getMessage());
+				}
+			}
+		}.start();
+		
+	}
 	public static Vector<Ausleihe> getVorgemerkte(){
 		Vector<Ausleihe> ret = new Vector<Ausleihe>();
 		try{
@@ -455,6 +591,36 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
+	public static void getVorgemerkte(final WritableList data){
+		data.clear();
+		new Thread(){
+			public void run() {
+				try{
+					Statement state = DBManager.getIt().getConnection().createStatement();
+					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0 and vorgemerkt = 1");
+					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					while(set.next()){
+						Ausleihe b = new Ausleihe(set);
+						vec.add(b);
+						if(vec.size() >= 10){
+							data.getRealm().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									data.addAll(vec);
+									vec.clear();
+								}
+							});
+						}
+					}
+					set.close();
+					state.close();
+				}catch(SQLException ex){
+					Logger.logError(ex.getMessage());
+				}
+			}
+		}.start();
+		
+	}
 	
 	public static Ausleihe fromId(int id){
 		try{

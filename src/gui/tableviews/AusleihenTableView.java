@@ -7,6 +7,7 @@ import gui.selectors.SchuelerSelector;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import model.Ausleihe;
@@ -17,8 +18,12 @@ import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.BeansObservables;
 import org.eclipse.core.databinding.beans.PojoObservables;
 import org.eclipse.core.databinding.conversion.IConverter;
+import org.eclipse.core.databinding.observable.list.IListChangeListener;
+import org.eclipse.core.databinding.observable.list.ListChangeEvent;
+import org.eclipse.core.databinding.observable.list.WritableList;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
+import org.eclipse.jface.databinding.viewers.ObservableListContentProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -41,6 +46,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -96,7 +102,7 @@ public class AusleihenTableView extends Composite {
 	private ToolItem tltmNewItem;
 	private int widthStatus=170, widthVorgemerktAn=100, widthRueckdate=200;
 	
-	private Vector<Ausleihe> data = null;
+	private final WritableList data = new WritableList();
 
 	/**
 	 * Create the composite.
@@ -293,6 +299,7 @@ public class AusleihenTableView extends Composite {
 				if(!openOverviewOnDoubleClick) return;
 				AusleiheOverview view = new AusleiheOverview(getShell(), getAusleihe());
 				view.open();
+				if(view.getReturnCode() == AusleiheOverview.CANCEL) return;
 				updateTable();
 				selectAusleihe(view.getAusleihe());
 			}
@@ -420,7 +427,8 @@ public class AusleihenTableView extends Composite {
 	
 	private void initComponents(){
 		tableViewer.setComparator(comparator);
-		tableViewer.setContentProvider(new ArrayContentProvider());
+		tableViewer.setContentProvider(new ObservableListContentProvider());
+		tableViewer.setInput(data);
 		updateTable();
 		
 		//initial sorting
@@ -432,7 +440,7 @@ public class AusleihenTableView extends Composite {
 	
 	
 	public void updateTable(){
-		final int state;
+		int state;
 		if(btnOffeneAusleihen.getSelection()){
 			state = 0;
 			collapseHistory();
@@ -451,20 +459,13 @@ public class AusleihenTableView extends Composite {
 		}
 		else state = -1;
 		
-		WaitDialog.show(getShell(), this,new Runnable() {
-			
-			@Override
-			public void run() {
-				switch(state){
-				case 0: data = Ausleihe.getAllOpen(); break;
-				case 1: data = Ausleihe.getVorgemerkte(); break;
-				case 2: data = Ausleihe.getAllTooLate(); break;
-				case 3: data = Ausleihe.getAllDone(); break;
-				default: data = new Vector<Ausleihe>(); break;
-				}
-				tableViewer.setInput(data);
-			}
-		});
+		switch(state){
+			case 0: Ausleihe.getAllOpen(data); break;
+			case 1: Ausleihe.getVorgemerkte(data); break;
+			case 2: Ausleihe.getAllTooLate(data); break;
+			case 3: Ausleihe.getAllDone(data); break;
+			default: break;
+		}
 		
 	}
 	
@@ -514,8 +515,6 @@ public class AusleihenTableView extends Composite {
     	notifyListeners(SWT.Selection, new Event());
 		if(table.getSelectionCount() == 0) changes.firePropertyChange("ausleihe", ausleihe, ausleihe = null);
 		else{
-			data.clear();
-			for(TableItem i: table.getSelection()) data.add((Ausleihe) i.getData());
 			changes.firePropertyChange("ausleihe", ausleihe, ausleihe = (Ausleihe)table.getSelection()[0].getData());
 		}
     }
@@ -529,17 +528,34 @@ public class AusleihenTableView extends Composite {
 	}
 	
 	public Vector<Ausleihe> getAusleihen(){
-		return (Vector<Ausleihe>) data.clone();
+		return new Vector<Ausleihe>(data);
 	}
 	
-	public void selectAusleihe(Ausleihe ausleihe){
+	public void selectAusleihe(final Ausleihe ausleihe){
 		if(ausleihe != null && ausleihe.getId() != -1){
-			clearValues();
-			updateFilter();
-			changes.firePropertyChange("ausleihe", this.ausleihe, this.ausleihe = ausleihe);
-			tableViewer.setSelection(new StructuredSelection(AusleihenTableView.this.ausleihe),true);
-			table.forceFocus();
+			
+			if(data.contains(ausleihe)){
+				selectAusleiheNow(ausleihe);
+			}else data.addListChangeListener(new IListChangeListener() {
+				
+				@Override
+				public void handleListChange(ListChangeEvent ev) {
+					if(data.contains(ausleihe)){
+						selectAusleiheNow(ausleihe);
+						data.removeListChangeListener(this);
+					}
+				}
+			});
 		}
+	}
+	
+	private void selectAusleiheNow(Ausleihe ausleihe){
+		clearValues();
+		updateFilter();
+		
+		changes.firePropertyChange("ausleihe", this.ausleihe, this.ausleihe = ausleihe);
+		tableViewer.setSelection(new StructuredSelection(AusleihenTableView.this.ausleihe),true);
+		table.forceFocus();
 	}
 	
 	/**

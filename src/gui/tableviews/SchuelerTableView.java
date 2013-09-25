@@ -8,6 +8,10 @@ import java.util.Vector;
 
 import model.Schueler;
 
+import org.eclipse.core.databinding.observable.list.IListChangeListener;
+import org.eclipse.core.databinding.observable.list.ListChangeEvent;
+import org.eclipse.core.databinding.observable.list.WritableList;
+import org.eclipse.jface.databinding.viewers.ObservableListContentProvider;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -82,9 +86,10 @@ public class SchuelerTableView extends Composite {
 	private ToolItem toolItem;
 	private Label label;
 	
-	private Vector<Schueler> data = null;
 	private TableColumn tblclmnAnmerkungen;
 	private TableViewerColumn tableViewerColumn_5;
+	
+	private final WritableList data = new WritableList();
 	
 	/**
 	 * Create the composite.
@@ -339,18 +344,12 @@ public class SchuelerTableView extends Composite {
 	}
 	
 	public void updateTable(){
-		WaitDialog.show(getShell(),this, new Runnable() {
-			
-			@Override
-			public void run() {
-				data = Schueler.getAllSchueler();
-				tableViewer.setInput(data);	
-			}
-		});
+		Schueler.getAllSchueler(data);
 	}
 	
 	private void setProperties(){
-		tableViewer.setContentProvider(new ArrayContentProvider());
+		tableViewer.setContentProvider(new ObservableListContentProvider());
+		tableViewer.setInput(data);
 		tableViewer.addFilter(filter);
 		tableViewer.setComparator(comparator);
 		
@@ -399,13 +398,28 @@ public class SchuelerTableView extends Composite {
 		return schueler;
 	}
 	
-	public void selectSchueler(Schueler b){
+	public void selectSchueler(final Schueler b){
 		if(b != null && b.getId() != -1){
-			changes.firePropertyChange("schueler", schueler, schueler = b);
-			tableViewer.setSelection(new StructuredSelection(b),true);
-			table.forceFocus();
-			enterValues(b);
+			if(data.contains(b)){
+				selectSchueler(b);
+			}else data.addListChangeListener(new IListChangeListener() {
+				
+				@Override
+				public void handleListChange(ListChangeEvent ev) {
+					if(data.contains(b)){
+						selectSchuelerNow(b);
+						data.removeListChangeListener(this);
+					}
+				}
+			});
 		}
+	}
+	
+	private void selectSchuelerNow(Schueler b){
+		changes.firePropertyChange("schueler", schueler, schueler = b);
+		tableViewer.setSelection(new StructuredSelection(b),true);
+		table.forceFocus();
+		enterValues(b);
 	}
 	
 	public String getVorname(){

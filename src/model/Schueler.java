@@ -5,12 +5,14 @@ import java.beans.PropertyChangeSupport;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
 import log.Logger;
 
+import org.eclipse.core.databinding.observable.list.WritableList;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.swt.SWT;
@@ -144,18 +146,21 @@ public class Schueler implements Comparable<Schueler>, IStringable, IDefault{
 						String.format("insert into "+DBManager.TABLE_SCHUELER+" (id,nachname,vorname,klasse,anmerkungen,male) values (%d, '%s', '%s', '%s', '%s', %d)",
 								id,nachname,vorname,klasse,anmerkungen, gender==Gender.MALE?1:0));
 				state.close();
+
+				Logger.logEvent("Schueler.eintragen", toString());
 			}else{
 				Statement state = DBManager.getIt().getConnection().createStatement();
 				state.execute(
 					String.format("update "+DBManager.TABLE_SCHUELER+" set nachname='%s', vorname='%s', klasse='%s', anmerkungen='%s', male=%d   where id = %d",
 							nachname,vorname,klasse,anmerkungen,gender==Gender.MALE?1:0,id));
 				state.close();
+
+				Logger.logEvent("Schueler.update", toString());
 			}
 		}catch(SQLException ex){
 			Logger.logError(ex.getMessage());
 		}
 
-		Logger.logEvent("Schueler.eintragen", toString());
 	}
 	
 	public void entfernen(){
@@ -385,6 +390,37 @@ public class Schueler implements Comparable<Schueler>, IStringable, IDefault{
 		return ret;
 	}
 	
+	public static void getAllSchueler(final WritableList data){
+		data.clear();
+		new Thread(){
+			public void run() {
+				try{
+					Statement state = DBManager.getIt().getConnection().createStatement();
+					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_SCHUELER);
+					final ArrayList<Schueler> vec = new ArrayList<Schueler>();
+					while(set.next()){
+						Schueler b = new Schueler(set);
+						vec.add(b);
+						if(vec.size() >= 10){
+							data.getRealm().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									data.addAll(vec);
+									vec.clear();
+								}
+							});
+						}
+					}
+					set.close();
+					state.close();
+				}catch(SQLException ex){
+					Logger.logError(ex.getMessage());
+				}
+			}
+		}.start();
+		
+	}
+	
 	public static Schueler fromId(int id){
 		try{
 			Statement state = DBManager.getIt().getConnection().createStatement();
@@ -452,6 +488,7 @@ public class Schueler implements Comparable<Schueler>, IStringable, IDefault{
 		try{
 			Statement state = DBManager.getIt().getConnection().createStatement();
 			ResultSet set = state.executeQuery("select count(*) from "+DBManager.TABLE_SCHUELER+" where id not in (select distinct s_id from "+DBManager.TABLE_AUSLEIHEN+")");
+			set.next();
 			int ret = set.getInt(1);
 			set.close();
 			state.close();

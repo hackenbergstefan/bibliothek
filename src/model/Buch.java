@@ -9,13 +9,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
 import log.Logger;
 
+import org.eclipse.core.databinding.observable.Realm;
+import org.eclipse.core.databinding.observable.list.WritableList;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.TextStyle;
@@ -46,6 +51,38 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 		return ret;
 	}
 	
+	public static void getAllBuecher(final WritableList data){
+		data.clear();
+		new Thread(){
+			public void run() {
+				try{
+					Statement state = DBManager.getIt().getConnection().createStatement();
+					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_BUECHER);
+					final ArrayList<Buch> vec = new ArrayList<Buch>();
+					while(set.next()){
+						Buch b = new Buch(set);
+						vec.add(b);
+						if(vec.size() >= 20){
+							data.getRealm().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									if(vec.size() > 0){
+										data.addAll(vec);
+										vec.clear();
+									}
+								}
+							});
+						}
+					}
+					set.close();
+					state.close();
+				}catch(SQLException ex){
+					Logger.logError(ex.getMessage());
+				}
+			}
+		}.start();
+		
+	}
 	
 	private int id = -1;
 	private String isbn="", autor="NN", titel="NN", jahr="", anmerkungen="";
@@ -256,6 +293,8 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 				ps.setInt(10, kategorie.getId());
 				ps.execute();
 				ps.close();
+
+				Logger.logEvent("Buch.eintragen", toString());
 			}else{
 				PreparedStatement ps = DBManager.getIt().getConnection().prepareStatement("update "+DBManager.TABLE_BUECHER+" set isbn=?, autor=?, titel=?, jahr=?, art=?, stufe=?, stichwort=?, anmerkungen=?, kategorie_id=? where id = ?");
 				ps.setString(1, isbn);
@@ -270,6 +309,8 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 				ps.setInt(10, id);
 				ps.execute();
 				ps.close();
+
+				Logger.logEvent("Buch.update", toString());
 			}
 			if(!avoidUpdate)updateEquals();
 
@@ -277,7 +318,6 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 			Logger.logError(ex.getMessage());
 		}
 
-		Logger.logEvent("Buch.eintragen", toString());
 	}
 	
 	/**

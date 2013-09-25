@@ -421,31 +421,7 @@ public class AusleiheOverview extends TitleDialog {
 		target = SWTObservables.observeSelection(btnVormerken);
 		binding = bindingContext.bindValue(target, model);
 		ControlDecorationSupport.create(binding, SWT.TOP | SWT.LEFT);
-		
-		//Ausleihe beginnen enabled
-		model = BeansObservables.observeValue(ausleihe, "id");
-		target = SWTObservables.observeEnabled(btnAusleiheBeginnen);
-		str = new UpdateValueStrategy();
-		str.setConverter(new IConverter() {
-			
-			@Override
-			public Object getToType() {
-				return boolean.class;
-			}
-			
-			@Override
-			public Object getFromType() {
-				return int.class;
-			}
-			
-			@Override
-			public Object convert(Object fromObject) {
-				int id = (Integer) fromObject;
-				return id != -1 && ausleihe.isVorgemerkt();
-			}
-		});
-		binding = bindingContext.bindValue(target, model, null, str);
-		
+
 		//button enabling
 		model = BeansObservables.observeValue(ausleihe, "id");
 		target = SWTObservables.observeEnabled(btnZuruckgeben);
