@@ -60,7 +60,6 @@ public class DBManager {
 		try {
 			if(conn != null) conn.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			Logger.logError(e.getMessage());
 		}
 	}
@@ -83,9 +82,18 @@ public class DBManager {
 		    props.setProperty("connectionCollation","utf8_general_ci");
 		    conn = DriverManager.getConnection(url, props);
 		} catch (Exception e) {
-			// TODO Auto-generated catLogger.logError(e.getMessage())StackTrace();
 			Logger.logError(e.getMessage());
 		}
+	}
+	
+	public boolean isConnected(){
+		if(conn != null)
+			try {
+				return !conn.isClosed();
+			} catch (SQLException e) {
+				Logger.logError(e.getMessage());
+			}
+		return false;
 	}
 	
 	public static void runSQLFile(File f){

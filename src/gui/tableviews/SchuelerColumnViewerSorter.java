@@ -27,7 +27,7 @@ public class SchuelerColumnViewerSorter extends ViewerComparator{
 		} else {
 			// New column; do an ascending sort
 			this.propertyIndex = column;
-			direction = DESCENDING;
+			direction = 1-DESCENDING;
 		}
 	}
 

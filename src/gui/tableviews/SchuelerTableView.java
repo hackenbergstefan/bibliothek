@@ -361,11 +361,16 @@ public class SchuelerTableView extends Composite {
 		tblclmnKlasse.addSelectionListener(getSelectionAdapter(tblclmnKlasse, 3));
 		
 		updateTable();
+		
+		//initial sorting
+		comparator.setColumn(3);
+		tableViewer.getTable().setSortDirection(comparator.getDirection());
+		tableViewer.refresh();
 	}
 	
 	private void openSchueler(){
 		if(!openOverviewOnDoubleClick) return;
-		new StartSchuelerOverview(schueler, getShell(), SchuelerTableView.this).run();
+		if(schueler!= null) new StartSchuelerOverview(schueler, getShell(), SchuelerTableView.this).run();
 	}
 	
 	private void schuelerSelected(SelectionEvent e){

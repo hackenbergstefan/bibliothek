@@ -92,6 +92,7 @@ public class Splash extends Shell {
 		@Override
 		public void run() {
 			do{
+				DBManager.getIt().connect();
 				display.syncExec(new Runnable(){
 					public void run(){
 						txtStatus.setText("Warte auf Datenbank ...");
@@ -103,7 +104,7 @@ public class Splash extends Shell {
 					Thread.sleep(500);
 				}catch(Exception ex){}
 
-			}while(DBManager.getIt() == null);
+			}while(!DBManager.getIt().isConnected());
 			
 			display.syncExec(new Runnable() {
 				

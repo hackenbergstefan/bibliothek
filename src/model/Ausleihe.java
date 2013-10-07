@@ -14,6 +14,7 @@ import org.eclipse.core.databinding.observable.list.WritableList;
 
 import log.Logger;
 import util.DateUtils;
+import util.MutableInteger;
 import db.DBManager;
 
 public class Ausleihe implements IDefault{
@@ -418,15 +419,21 @@ public class Ausleihe implements IDefault{
 					Statement state = DBManager.getIt().getConnection().createStatement();
 					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+"");
 					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					final MutableInteger curStart = new MutableInteger(0);
 					while(set.next()){
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
-						if(vec.size() >= 10){
+						if(vec.size()%20 == 0){
 							data.getRealm().asyncExec(new Runnable() {
 								@Override
 								public void run() {
-									data.addAll(vec);
-									vec.clear();
+									int curSize = vec.size();
+									int cur = curStart.getValue();
+									int curEnd = (int)Math.min(curSize, cur+10);
+									curStart.setValue(curEnd);
+									
+									if(cur < curSize && curEnd <= curSize)
+										data.addAll(vec.subList(cur, curEnd));
 								}
 							});
 						}
@@ -434,8 +441,13 @@ public class Ausleihe implements IDefault{
 					data.getRealm().asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							data.addAll(vec);
-							vec.clear();
+							int curSize = vec.size();
+							int cur = curStart.getValue();
+							int curEnd = (int)Math.min(curSize, cur+10);
+							curStart.setValue(curEnd);
+							
+							if(cur < curSize && curEnd <= curSize)
+								data.addAll(vec.subList(cur, curEnd));
 						}
 					});
 					set.close();
@@ -472,15 +484,21 @@ public class Ausleihe implements IDefault{
 					Statement state = DBManager.getIt().getConnection().createStatement();
 					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 1 order by rueckdate desc");
 					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					final MutableInteger curStart = new MutableInteger(0);
 					while(set.next()){
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
-						if(vec.size() >= 10){
+						if(vec.size()%20 == 0){
 							data.getRealm().asyncExec(new Runnable() {
 								@Override
 								public void run() {
-									data.addAll(vec);
-									vec.clear();
+									int curSize = vec.size();
+									int cur = curStart.getValue();
+									int curEnd = (int)Math.min(curSize, cur+10);
+									curStart.setValue(curEnd);
+									
+									if(cur < curSize && curEnd <= curSize)
+										data.addAll(vec.subList(cur, curEnd));
 								}
 							});
 						}
@@ -488,8 +506,13 @@ public class Ausleihe implements IDefault{
 					data.getRealm().asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							data.addAll(vec);
-							vec.clear();
+							int curSize = vec.size();
+							int cur = curStart.getValue();
+							int curEnd = (int)Math.min(curSize, cur+10);
+							curStart.setValue(curEnd);
+							
+							if(cur < curSize && curEnd <= curSize)
+								data.addAll(vec.subList(cur, curEnd));
 						}
 					});
 					set.close();
@@ -526,15 +549,21 @@ public class Ausleihe implements IDefault{
 					Statement state = DBManager.getIt().getConnection().createStatement();
 					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0 AND bis < sysdate-1 order by bis asc");
 					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					final MutableInteger curStart = new MutableInteger(0);
 					while(set.next()){
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
-						if(vec.size() >= 10){
+						if(vec.size()%20 == 0){
 							data.getRealm().asyncExec(new Runnable() {
 								@Override
 								public void run() {
-									data.addAll(vec);
-									vec.clear();
+									int curSize = vec.size();
+									int cur = curStart.getValue();
+									int curEnd = (int)Math.min(curSize, cur+10);
+									curStart.setValue(curEnd);
+									
+									if(cur < curSize && curEnd <= curSize)
+										data.addAll(vec.subList(cur, curEnd));
 								}
 							});
 						}
@@ -542,8 +571,13 @@ public class Ausleihe implements IDefault{
 					data.getRealm().asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							data.addAll(vec);
-							vec.clear();
+							int curSize = vec.size();
+							int cur = curStart.getValue();
+							int curEnd = (int)Math.min(curSize, cur+10);
+							curStart.setValue(curEnd);
+							
+							if(cur < curSize && curEnd <= curSize)
+								data.addAll(vec.subList(cur, curEnd));
 						}
 					});
 					set.close();
@@ -580,15 +614,21 @@ public class Ausleihe implements IDefault{
 					Statement state = DBManager.getIt().getConnection().createStatement();
 					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0");
 					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					final MutableInteger curStart = new MutableInteger(0);
 					while(set.next()){
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
-						if(vec.size() >= 10){
+						if(vec.size()%20 == 0){
 							data.getRealm().asyncExec(new Runnable() {
 								@Override
 								public void run() {
-									data.addAll(vec);
-									vec.clear();
+									int curSize = vec.size();
+									int cur = curStart.getValue();
+									int curEnd = (int)Math.min(curSize, cur+10);
+									curStart.setValue(curEnd);
+									
+									if(cur < curSize && curEnd <= curSize)
+										data.addAll(vec.subList(cur, curEnd));
 								}
 							});
 						}
@@ -596,8 +636,13 @@ public class Ausleihe implements IDefault{
 					data.getRealm().asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							data.addAll(vec);
-							vec.clear();
+							int curSize = vec.size();
+							int cur = curStart.getValue();
+							int curEnd = (int)Math.min(curSize, cur+10);
+							curStart.setValue(curEnd);
+							
+							if(cur < curSize && curEnd <= curSize)
+								data.addAll(vec.subList(cur, curEnd));
 						}
 					});
 					set.close();
@@ -633,15 +678,21 @@ public class Ausleihe implements IDefault{
 					Statement state = DBManager.getIt().getConnection().createStatement();
 					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0 and vorgemerkt = 1");
 					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
+					final MutableInteger curStart = new MutableInteger(0);
 					while(set.next()){
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
-						if(vec.size() >= 10){
+						if(vec.size()%20 == 0){
 							data.getRealm().asyncExec(new Runnable() {
 								@Override
 								public void run() {
-									data.addAll(vec);
-									vec.clear();
+									int curSize = vec.size();
+									int cur = curStart.getValue();
+									int curEnd = (int)Math.min(curSize, cur+10);
+									curStart.setValue(curEnd);
+									
+									if(cur < curSize && curEnd <= curSize)
+										data.addAll(vec.subList(cur, curEnd));
 								}
 							});
 						}
@@ -649,8 +700,13 @@ public class Ausleihe implements IDefault{
 					data.getRealm().asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							data.addAll(vec);
-							vec.clear();
+							int curSize = vec.size();
+							int cur = curStart.getValue();
+							int curEnd = (int)Math.min(curSize, cur+10);
+							curStart.setValue(curEnd);
+							
+							if(cur < curSize && curEnd <= curSize)
+								data.addAll(vec.subList(cur, curEnd));
 						}
 					});
 					set.close();

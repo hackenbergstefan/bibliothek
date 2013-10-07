@@ -30,6 +30,7 @@ import org.jdom2.Element;
 
 import util.ArrayUtils;
 import util.FontUtil;
+import util.MutableInteger;
 import db.DBManager;
 
 public class Buch implements Comparable<Buch>, IStringable, IDefault{
@@ -59,17 +60,21 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 					Statement state = DBManager.getIt().getConnection().createStatement();
 					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_BUECHER);
 					final ArrayList<Buch> vec = new ArrayList<Buch>();
+					final MutableInteger curStart = new MutableInteger(0);
 					while(set.next()){
 						Buch b = new Buch(set);
 						vec.add(b);
-						if(vec.size() >= 20){
+						if(vec.size()%20 == 0){
 							data.getRealm().asyncExec(new Runnable() {
 								@Override
 								public void run() {
-									if(vec.size() > 0){
-										data.addAll(vec);
-										vec.clear();
-									}
+									int curSize = vec.size();
+									int cur = curStart.getValue();
+									int curEnd = (int)Math.min(curSize, cur+10);
+									curStart.setValue(curEnd);
+									
+									if(cur < curSize && curEnd <= curSize)
+										data.addAll(vec.subList(cur, curEnd));
 								}
 							});
 						}
@@ -77,8 +82,13 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 					data.getRealm().asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							data.addAll(vec);
-							vec.clear();
+							int curSize = vec.size();
+							int cur = curStart.getValue();
+							int curEnd = (int)Math.min(curSize, cur+10);
+							curStart.setValue(curEnd);
+							
+							if(cur < curSize && curEnd <= curSize)
+								data.addAll(vec.subList(cur, curEnd));
 						}
 					});
 					set.close();

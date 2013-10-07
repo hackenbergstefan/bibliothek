@@ -299,7 +299,7 @@ public class AusleihenTableView extends Composite {
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
 				if(!openOverviewOnDoubleClick) return;
-				new StartAusleiheOverview(ausleihe, getShell(), AusleihenTableView.this).run();
+				if(ausleihe != null) new StartAusleiheOverview(ausleihe, getShell(), AusleihenTableView.this).run();
 			}
 		});
 		table.setLinesVisible(true);

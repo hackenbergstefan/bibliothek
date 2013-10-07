@@ -359,7 +359,7 @@ public class BuecherTableView extends Composite {
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
 				if(!openOverviewOnDoubleClick) return;
-				new StartBuchOverview(buch, getShell(), BuecherTableView.this).run();
+				if(buch != null) new StartBuchOverview(buch, getShell(), BuecherTableView.this).run();
 			}
 		});
 		table.addSelectionListener(new SelectionAdapter() {
@@ -551,6 +551,12 @@ public class BuecherTableView extends Composite {
 		initBindings();
 		
 		updateTable();
+		
+		//initial sorting
+		comparator.setColumn(1);
+		int dir = comparator.getDirection();
+		tableViewer.getTable().setSortDirection(dir);
+		tableViewer.refresh();
 		
 	}
 	
