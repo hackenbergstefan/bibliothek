@@ -37,6 +37,10 @@ public class AusleiheColumnViewerSorter extends ViewerComparator{
 
 	@Override
 	public int compare(Viewer viewer, Object e1, Object e2) {
+		return compareInternal(e1,e2,propertyIndex);
+	}
+	
+	private int compareInternal(Object e1,Object e2, int propertyIndex){ 
 		Ausleihe b1 = (Ausleihe)e1;
 		Ausleihe b2 = (Ausleihe)e2;
 		
@@ -45,7 +49,9 @@ public class AusleiheColumnViewerSorter extends ViewerComparator{
 		case 0:
 			rc = b1.getB().compareTo(b2.getB()); break;
 		case 1:
-			rc = b1.getS().compareTo(b2.getS()); break;
+			rc = b1.getS().compareTo(b2.getS()); 
+			if(rc == 0) rc = compareInternal(e1, e2, 0);
+			break;
 		case 2:
 			rc = b1.getVon().compareTo(b2.getVon()); break;
 		case 3:
@@ -56,6 +62,9 @@ public class AusleiheColumnViewerSorter extends ViewerComparator{
 			else if(b1.isVorgemerkt()) rc = -1;
 			else if(b2.isVorgemerkt()) rc = 1;
 			else rc = b1.getDaysTooLate() - b2.getDaysTooLate();
+			
+			if(rc == 0) rc = compareInternal(e1, e2, 1);
+			
 			break;
 		case 5:
 			if(b1.getVorgemerktAn() != null && b2.getVorgemerktAn() != null)
@@ -65,6 +74,9 @@ public class AusleiheColumnViewerSorter extends ViewerComparator{
 			else if(b1.getVorgemerktAn() == null)
 				rc = -1;
 			else rc = 0;
+			
+			if(rc == 0) rc = compareInternal(e1, e2, 1);
+			
 			break;
 		case 6:
 			if(b1.getRueckdate() != null && b2.getRueckdate() != null)
@@ -74,6 +86,9 @@ public class AusleiheColumnViewerSorter extends ViewerComparator{
 			else if(b1.getRueckdate() == null)
 				rc = -1;
 			else rc = 0;
+			
+			if(rc == 0) rc = compareInternal(e1, e2, 1);
+			
 			break;
 		}
 			

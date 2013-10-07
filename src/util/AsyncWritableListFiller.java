@@ -13,7 +13,7 @@ public class AsyncWritableListFiller {
 	 * @param curStart current starting position from where sublist of vec will be taken
 	 * @param step number of entries to be added to data
 	 */
-	public static void addToList(final WritableList data, final ArrayList vec, final MutableInteger curStart, final int step){
+	public static void addToList(final WritableList2 data, final ArrayList vec, final MutableInteger curStart, final int step){
 		data.getRealm().asyncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -35,7 +35,7 @@ public class AsyncWritableListFiller {
 	 * @param curStart current starting position from where sublist of vec will be taken
 	 * @param step number of entries to be added to data
 	 */
-	public static void addToListAllRest(final WritableList data, final ArrayList vec, final MutableInteger curStart){
+	public static void addToListAllRest(final WritableList2 data, final ArrayList vec, final MutableInteger curStart){
 		data.getRealm().asyncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -46,6 +46,8 @@ public class AsyncWritableListFiller {
 				
 				if(cur < curSize && curEnd <= curSize)
 					data.addAll(vec.subList(cur, curEnd));
+				
+				data.finishMajorListChange();
 			}
 		});
 	}

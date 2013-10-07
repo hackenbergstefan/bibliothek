@@ -48,6 +48,7 @@ import actions.StartSchuelerOverview;
 
 import util.FontUtil;
 import util.WaitDialog;
+import util.WritableList2;
 
 public class SchuelerTableView extends Composite {
 	public Text txtVorname;
@@ -91,7 +92,7 @@ public class SchuelerTableView extends Composite {
 	private TableColumn tblclmnAnmerkungen;
 	private TableViewerColumn tableViewerColumn_5;
 	
-	private final WritableList data = new WritableList();
+	private final WritableList2 data = new WritableList2();
 	
 	/**
 	 * Create the composite.
@@ -121,7 +122,7 @@ public class SchuelerTableView extends Composite {
 		txtId.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				if(table.getItemCount() == 1){
+				if(table.getSelectionCount() == 1){
 					updateFilter();
 					selectSchueler((Schueler) table.getItem(0).getData());
 					openSchueler();
@@ -365,6 +366,7 @@ public class SchuelerTableView extends Composite {
 		//initial sorting
 		comparator.setColumn(3);
 		tableViewer.getTable().setSortDirection(comparator.getDirection());
+		tableViewer.getTable().setSortColumn(tblclmnKlasse);
 		tableViewer.refresh();
 	}
 	
@@ -405,7 +407,7 @@ public class SchuelerTableView extends Composite {
 	public void selectSchueler(final Schueler b){
 		if(b != null && b.getId() != -1){
 			if(data.contains(b)){
-				selectSchueler(b);
+				selectSchuelerNow(b);
 			}else data.addListChangeListener(new IListChangeListener() {
 				
 				@Override
@@ -420,10 +422,17 @@ public class SchuelerTableView extends Composite {
 	}
 	
 	private void selectSchuelerNow(Schueler b){
-		changes.firePropertyChange("schueler", schueler, schueler = b);
-		tableViewer.setSelection(new StructuredSelection(b),true);
-		table.forceFocus();
-		enterValues(b);
+		if(schueler != null && schueler.equals(b)){
+			tableViewer.setSelection(new StructuredSelection(b),true);
+		}else{
+			clearValues();
+			updateFilter();
+			changes.firePropertyChange("schueler", schueler, schueler = b);
+			tableViewer.setSelection(new StructuredSelection(b),true);
+			
+			table.forceFocus();
+			enterValues(b);
+		}
 	}
 	
 	public String getVorname(){

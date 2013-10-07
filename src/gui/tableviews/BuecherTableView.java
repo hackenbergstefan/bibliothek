@@ -62,6 +62,7 @@ import actions.StartBuchOverview;
 
 import util.FontUtil;
 import util.WaitDialog;
+import util.WritableList2;
 
 public class BuecherTableView extends Composite {
 	public Text txtISBN;
@@ -112,7 +113,7 @@ public class BuecherTableView extends Composite {
 //	private TableColumnLayout colLay;
 	private Label label;
 	
-	private final WritableList data = new WritableList();
+	private final WritableList2 data = new WritableList2();
 	
 	
 	/**
@@ -553,9 +554,10 @@ public class BuecherTableView extends Composite {
 		updateTable();
 		
 		//initial sorting
-		comparator.setColumn(1);
+		comparator.setColumn(8);
 		int dir = comparator.getDirection();
 		tableViewer.getTable().setSortDirection(dir);
+		tableViewer.getTable().setSortColumn(tblclmnKategorie);
 		tableViewer.refresh();
 		
 	}
@@ -608,8 +610,10 @@ public class BuecherTableView extends Composite {
 				public void handleListChange(ListChangeEvent arg0) {
 					if(data.contains(b)){
 						selectBuchNow(b);
-						data.removeListChangeListener(this);
 					}
+					if(arg0.diff.getDifferences() != null && arg0.diff.getDifferences()[0] != null && 
+							arg0.diff.getDifferences()[0].getPosition() == -1)
+						data.removeListChangeListener(this);
 				}
 			});
 			
@@ -617,13 +621,17 @@ public class BuecherTableView extends Composite {
 	}
 	
 	private void selectBuchNow(Buch b){
-		clearValues();
-		updateFilter();
-		
-		changes.firePropertyChange("buch", buch, buch = b);
-		tableViewer.setSelection(new StructuredSelection(b),true);
-		table.forceFocus();
-		enterValues(b);
+		if(buch!= null && buch.equals(b)){
+			tableViewer.setSelection(new StructuredSelection(b),true);
+		}else{
+			clearValues();
+			updateFilter();
+			
+			changes.firePropertyChange("buch", buch, buch = b);
+			tableViewer.setSelection(new StructuredSelection(b),true);
+			table.forceFocus();
+			enterValues(b);
+		}
 	}
 
 	

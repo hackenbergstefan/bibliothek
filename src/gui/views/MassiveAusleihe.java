@@ -105,7 +105,10 @@ public class MassiveAusleihe extends TitleDialog {
 	public MassiveAusleihe(Shell parentShell, Ausleihe a) {
 		super(parentShell);
 		setHelpAvailable(false);
-		if(a != null) ausleihe = a;
+		if(a != null){
+			ausleihe = a;
+			if(a.getS() != null) schueler = a.getS();
+		}
 	}
 
 	/**
@@ -413,8 +416,13 @@ public class MassiveAusleihe extends TitleDialog {
 				false);
 		createButton(parent, IDialogConstants.CANCEL_ID,
 				IDialogConstants.CANCEL_LABEL, false);
-		
-		initBindings();
+	}
+	
+	@Override
+	protected void initValues() {
+		DataBindingContext m_bindingContext = initBindings();
+		setBindingValues(m_bindingContext, ausleihe);
+		super.initValues();
 	}
 	
 	@Override
@@ -434,7 +442,7 @@ public class MassiveAusleihe extends TitleDialog {
 		super.okPressed();
 	}
 	
-	private void initBindings(){
+	private DataBindingContext initBindings(){
 		DataBindingContext dbc = new DataBindingContext();
 		
 		IObservableValue tar = SWTObservables.observeText(txtSchuelerID);
@@ -496,8 +504,8 @@ public class MassiveAusleihe extends TitleDialog {
 				
 		
 		TitleAreaDialogSupport.create(this, dbc);
-		dbc.updateTargets();
 		
+		return dbc;
 	}
 	
 	private void updateTableRueck(){

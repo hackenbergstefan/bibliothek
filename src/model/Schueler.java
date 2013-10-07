@@ -19,8 +19,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import util.AsyncWritableListFiller;
 import util.FontUtil;
 import util.MutableInteger;
+import util.WritableList2;
 import db.DBManager;
 
 public class Schueler implements Comparable<Schueler>, IStringable, IDefault{	
@@ -391,7 +393,7 @@ public class Schueler implements Comparable<Schueler>, IStringable, IDefault{
 		return ret;
 	}
 	
-	public static void getAllSchueler(final WritableList data){
+	public static void getAllSchueler(final WritableList2 data){
 		data.clear();
 		new Thread(){
 			public void run() {
@@ -404,32 +406,10 @@ public class Schueler implements Comparable<Schueler>, IStringable, IDefault{
 						Schueler b = new Schueler(set);
 						vec.add(b);
 						if(vec.size()%10 == 0){
-							data.getRealm().asyncExec(new Runnable() {
-								@Override
-								public void run() {
-									int curSize = vec.size();
-									int cur = curStart.getValue();
-									int curEnd = (int)Math.min(curSize, cur+10);
-									curStart.setValue(curEnd);
-									
-									if(cur < curSize && curEnd <= curSize)
-										data.addAll(vec.subList(cur, curEnd));
-								}
-							});
+							AsyncWritableListFiller.addToList(data, vec, curStart, 10);
 						}
 					}
-					data.getRealm().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							int curSize = vec.size();
-							int cur = curStart.getValue();
-							int curEnd = (int)Math.min(curSize, cur+10);
-							curStart.setValue(curEnd);
-							
-							if(cur < curSize && curEnd <= curSize)
-								data.addAll(vec.subList(cur, curEnd));
-						}
-					});
+					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
 					set.close();
 					state.close();
 				}catch(SQLException ex){

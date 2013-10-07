@@ -33,22 +33,29 @@ public class BuchColumnViewerSorter extends ViewerComparator{
 
 	@Override
 	public int compare(Viewer viewer, Object e1, Object e2) {
+		return compareInternal(e1,e2,propertyIndex);
+	}
+	
+	private int compareInternal(Object e1, Object e2, int curPropIndex){
 		Buch b1 = (Buch)e1;
 		Buch b2 = (Buch)e2;
 		
 		int rc = 0;
-		switch (propertyIndex) {
+		switch (curPropIndex) {
 		case 0:
 			rc = (int) Math.signum(b2.getId()-b1.getId());
 			break;
 		case 1:
 			rc = b1.getIsbn().compareTo(b2.getIsbn());
+			if(rc==0) rc = compareInternal(e1, e2, 0);
 			break;
 		case 2:
 			rc = b1.getAutor().compareTo(b2.getAutor());
+			if(rc==0) rc = compareInternal(e1, e2, 3);
 			break;
 		case 3:
 			rc = b1.getTitel().compareTo(b2.getTitel());
+			if(rc==0) rc = compareInternal(e1, e2, 1);
 			break;
 		case 4:
 			rc = b1.getJahr().compareTo(b2.getJahr());
@@ -64,6 +71,7 @@ public class BuchColumnViewerSorter extends ViewerComparator{
 			break;
 		case 8:
 			rc = (int)Math.signum(b2.getKategorie().getId() - b1.getKategorie().getId());
+			if(rc==0) rc = compareInternal(e1, e2, 2);
 			break;
 			
 		case 9:

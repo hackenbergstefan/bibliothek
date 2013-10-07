@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 import log.Logger;
 
 import org.eclipse.core.databinding.observable.Realm;
-import org.eclipse.core.databinding.observable.list.WritableList;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TableViewer;
@@ -29,8 +28,10 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import org.jdom2.Element;
 
 import util.ArrayUtils;
+import util.AsyncWritableListFiller;
 import util.FontUtil;
 import util.MutableInteger;
+import util.WritableList2;
 import db.DBManager;
 
 public class Buch implements Comparable<Buch>, IStringable, IDefault{
@@ -52,7 +53,7 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 		return ret;
 	}
 	
-	public static void getAllBuecher(final WritableList data){
+	public static void getAllBuecher(final WritableList2 data){
 		data.clear();
 		new Thread(){
 			public void run() {
@@ -64,33 +65,11 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 					while(set.next()){
 						Buch b = new Buch(set);
 						vec.add(b);
-						if(vec.size()%20 == 0){
-							data.getRealm().asyncExec(new Runnable() {
-								@Override
-								public void run() {
-									int curSize = vec.size();
-									int cur = curStart.getValue();
-									int curEnd = (int)Math.min(curSize, cur+10);
-									curStart.setValue(curEnd);
-									
-									if(cur < curSize && curEnd <= curSize)
-										data.addAll(vec.subList(cur, curEnd));
-								}
-							});
+						if(vec.size()%100 == 0){
+							AsyncWritableListFiller.addToList(data, vec, curStart, 100);
 						}
 					}
-					data.getRealm().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							int curSize = vec.size();
-							int cur = curStart.getValue();
-							int curEnd = (int)Math.min(curSize, cur+10);
-							curStart.setValue(curEnd);
-							
-							if(cur < curSize && curEnd <= curSize)
-								data.addAll(vec.subList(cur, curEnd));
-						}
-					});
+					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
 					set.close();
 					state.close();
 				}catch(SQLException ex){

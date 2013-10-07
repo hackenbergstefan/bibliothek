@@ -13,8 +13,10 @@ import java.util.Vector;
 import org.eclipse.core.databinding.observable.list.WritableList;
 
 import log.Logger;
+import util.AsyncWritableListFiller;
 import util.DateUtils;
 import util.MutableInteger;
+import util.WritableList2;
 import db.DBManager;
 
 public class Ausleihe implements IDefault{
@@ -411,7 +413,7 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
-	public static void getAllAusleihen(final WritableList data){
+	public static void getAllAusleihen(final WritableList2 data){
 		data.clear();
 		new Thread(){
 			public void run() {
@@ -424,32 +426,10 @@ public class Ausleihe implements IDefault{
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
 						if(vec.size()%20 == 0){
-							data.getRealm().asyncExec(new Runnable() {
-								@Override
-								public void run() {
-									int curSize = vec.size();
-									int cur = curStart.getValue();
-									int curEnd = (int)Math.min(curSize, cur+10);
-									curStart.setValue(curEnd);
-									
-									if(cur < curSize && curEnd <= curSize)
-										data.addAll(vec.subList(cur, curEnd));
-								}
-							});
+							AsyncWritableListFiller.addToList(data, vec, curStart,20);
 						}
 					}
-					data.getRealm().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							int curSize = vec.size();
-							int cur = curStart.getValue();
-							int curEnd = (int)Math.min(curSize, cur+10);
-							curStart.setValue(curEnd);
-							
-							if(cur < curSize && curEnd <= curSize)
-								data.addAll(vec.subList(cur, curEnd));
-						}
-					});
+					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
 					set.close();
 					state.close();
 				}catch(SQLException ex){
@@ -476,7 +456,7 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
-	public static void getAllDone(final WritableList data){
+	public static void getAllDone(final WritableList2 data){
 		data.clear();
 		new Thread(){
 			public void run() {
@@ -489,32 +469,10 @@ public class Ausleihe implements IDefault{
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
 						if(vec.size()%20 == 0){
-							data.getRealm().asyncExec(new Runnable() {
-								@Override
-								public void run() {
-									int curSize = vec.size();
-									int cur = curStart.getValue();
-									int curEnd = (int)Math.min(curSize, cur+10);
-									curStart.setValue(curEnd);
-									
-									if(cur < curSize && curEnd <= curSize)
-										data.addAll(vec.subList(cur, curEnd));
-								}
-							});
+							AsyncWritableListFiller.addToList(data, vec, curStart, 20);
 						}
 					}
-					data.getRealm().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							int curSize = vec.size();
-							int cur = curStart.getValue();
-							int curEnd = (int)Math.min(curSize, cur+10);
-							curStart.setValue(curEnd);
-							
-							if(cur < curSize && curEnd <= curSize)
-								data.addAll(vec.subList(cur, curEnd));
-						}
-					});
+					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
 					set.close();
 					state.close();
 				}catch(SQLException ex){
@@ -541,7 +499,7 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
-	public static void getAllTooLate(final WritableList data){
+	public static void getAllTooLate(final WritableList2 data){
 		data.clear();
 		new Thread(){
 			public void run() {
@@ -550,36 +508,15 @@ public class Ausleihe implements IDefault{
 					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0 AND bis < sysdate-1 order by bis asc");
 					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
 					final MutableInteger curStart = new MutableInteger(0);
+					int step=20;
 					while(set.next()){
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
-						if(vec.size()%20 == 0){
-							data.getRealm().asyncExec(new Runnable() {
-								@Override
-								public void run() {
-									int curSize = vec.size();
-									int cur = curStart.getValue();
-									int curEnd = (int)Math.min(curSize, cur+10);
-									curStart.setValue(curEnd);
-									
-									if(cur < curSize && curEnd <= curSize)
-										data.addAll(vec.subList(cur, curEnd));
-								}
-							});
+						if(vec.size()%step == 0){
+							AsyncWritableListFiller.addToList(data, vec, curStart, step);
 						}
 					}
-					data.getRealm().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							int curSize = vec.size();
-							int cur = curStart.getValue();
-							int curEnd = (int)Math.min(curSize, cur+10);
-							curStart.setValue(curEnd);
-							
-							if(cur < curSize && curEnd <= curSize)
-								data.addAll(vec.subList(cur, curEnd));
-						}
-					});
+					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
 					set.close();
 					state.close();
 				}catch(SQLException ex){
@@ -606,7 +543,7 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
-	public static void getAllOpen(final WritableList data){
+	public static void getAllOpen(final WritableList2 data){
 		data.clear();
 		new Thread(){
 			public void run() {
@@ -619,32 +556,10 @@ public class Ausleihe implements IDefault{
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
 						if(vec.size()%20 == 0){
-							data.getRealm().asyncExec(new Runnable() {
-								@Override
-								public void run() {
-									int curSize = vec.size();
-									int cur = curStart.getValue();
-									int curEnd = (int)Math.min(curSize, cur+10);
-									curStart.setValue(curEnd);
-									
-									if(cur < curSize && curEnd <= curSize)
-										data.addAll(vec.subList(cur, curEnd));
-								}
-							});
+							AsyncWritableListFiller.addToList(data, vec, curStart, 20);
 						}
 					}
-					data.getRealm().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							int curSize = vec.size();
-							int cur = curStart.getValue();
-							int curEnd = (int)Math.min(curSize, cur+10);
-							curStart.setValue(curEnd);
-							
-							if(cur < curSize && curEnd <= curSize)
-								data.addAll(vec.subList(cur, curEnd));
-						}
-					});
+					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
 					set.close();
 					state.close();
 				}catch(SQLException ex){
@@ -670,7 +585,7 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
-	public static void getVorgemerkte(final WritableList data){
+	public static void getVorgemerkte(final WritableList2 data){
 		data.clear();
 		new Thread(){
 			public void run() {
@@ -683,32 +598,10 @@ public class Ausleihe implements IDefault{
 						Ausleihe b = new Ausleihe(set);
 						vec.add(b);
 						if(vec.size()%20 == 0){
-							data.getRealm().asyncExec(new Runnable() {
-								@Override
-								public void run() {
-									int curSize = vec.size();
-									int cur = curStart.getValue();
-									int curEnd = (int)Math.min(curSize, cur+10);
-									curStart.setValue(curEnd);
-									
-									if(cur < curSize && curEnd <= curSize)
-										data.addAll(vec.subList(cur, curEnd));
-								}
-							});
+							AsyncWritableListFiller.addToList(data, vec, curStart, 20);
 						}
 					}
-					data.getRealm().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							int curSize = vec.size();
-							int cur = curStart.getValue();
-							int curEnd = (int)Math.min(curSize, cur+10);
-							curStart.setValue(curEnd);
-							
-							if(cur < curSize && curEnd <= curSize)
-								data.addAll(vec.subList(cur, curEnd));
-						}
-					});
+					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
 					set.close();
 					state.close();
 				}catch(SQLException ex){

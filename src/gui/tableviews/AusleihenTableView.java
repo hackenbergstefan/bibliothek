@@ -62,6 +62,7 @@ import actions.StartAusleiheOverview;
 
 import util.DateUtils;
 import util.WaitDialog;
+import util.WritableList2;
 
 public class AusleihenTableView extends Composite {
 	private DataBindingContext m_bindingContext;
@@ -104,7 +105,7 @@ public class AusleihenTableView extends Composite {
 	private ToolItem tltmNewItem;
 	private int widthStatus=170, widthVorgemerktAn=100, widthRueckdate=200;
 	
-	private final WritableList data = new WritableList();
+	private final WritableList2 data = new WritableList2();
 
 	/**
 	 * Create the composite.
@@ -548,12 +549,16 @@ public class AusleihenTableView extends Composite {
 	}
 	
 	private void selectAusleiheNow(Ausleihe ausleihe){
-		clearValues();
-		updateFilter();
-		
-		changes.firePropertyChange("ausleihe", this.ausleihe, this.ausleihe = ausleihe);
-		tableViewer.setSelection(new StructuredSelection(AusleihenTableView.this.ausleihe),true);
-		table.forceFocus();
+		if(this.ausleihe != null && this.ausleihe.equals(ausleihe)){
+			tableViewer.setSelection(new StructuredSelection(ausleihe),true);
+		}else{
+			clearValues();
+			updateFilter();
+			
+			changes.firePropertyChange("ausleihe", this.ausleihe, this.ausleihe = ausleihe);
+			tableViewer.setSelection(new StructuredSelection(AusleihenTableView.this.ausleihe),true);
+			table.forceFocus();
+		}
 	}
 	
 	/**
