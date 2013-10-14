@@ -502,6 +502,8 @@ public class AusleiheOverview extends TitleDialog {
 		//Support
 		TitleAreaDialogSupport.create(this, bindingContext);
 		
+		addValidation(bindingContext);
+		
 		return bindingContext;
 	}
 }

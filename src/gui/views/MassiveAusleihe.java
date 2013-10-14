@@ -1,5 +1,6 @@
 package gui.views;
 
+import gui.StringConstants;
 import gui.selectors.BuecherSelector;
 import gui.selectors.SchuelerSelector;
 import gui.validators.IntGreaterZeroValidator;
@@ -20,9 +21,13 @@ import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.BeansObservables;
 import org.eclipse.core.databinding.conversion.IConverter;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
+import org.eclipse.core.databinding.validation.MultiValidator;
+import org.eclipse.core.databinding.validation.ValidationStatus;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.databinding.dialog.TitleAreaDialogSupport;
 import org.eclipse.jface.databinding.fieldassist.ControlDecorationSupport;
 import org.eclipse.jface.databinding.swt.SWTObservables;
+import org.eclipse.jface.databinding.viewers.ViewersObservables;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
@@ -83,7 +88,6 @@ public class MassiveAusleihe extends TitleDialog {
 	private Table tableRueck, tableAus;
 	private Text txtMediumIsbnRueck, txtMediumIsbnAus;
 	
-	private Schueler schueler;
 	private Vector<Ausleihe> buecherRueck = new Vector<Ausleihe>();
 	private Vector<Buch> buecherAus = new Vector<Buch>();
 	private Ausleihe ausleihe = new Ausleihe();
@@ -104,10 +108,10 @@ public class MassiveAusleihe extends TitleDialog {
 	 */
 	public MassiveAusleihe(Shell parentShell, Ausleihe a) {
 		super(parentShell);
+		setShellStyle(SWT.TITLE | SWT.APPLICATION_MODAL);
 		setHelpAvailable(false);
 		if(a != null){
 			ausleihe = a;
-			if(a.getS() != null) schueler = a.getS();
 		}
 	}
 
@@ -148,7 +152,7 @@ public class MassiveAusleihe extends TitleDialog {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				try{
-					setSchueler(Schueler.fromId(new Integer(txtSchuelerID.getText())));
+					ausleihe.setS(Schueler.fromId(new Integer(txtSchuelerID.getText())));
 				}catch(NumberFormatException ex){}
 			}
 		});
@@ -173,10 +177,10 @@ public class MassiveAusleihe extends TitleDialog {
 		tltmNewItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				SchuelerSelector view = new SchuelerSelector(getShell(), schueler);
+				SchuelerSelector view = new SchuelerSelector(getShell(), ausleihe.getS());
 				view.open();
 				if(view.getReturnCode() == TitleAreaDialog.OK)
-					setSchueler(view.getSchueler());
+					ausleihe.setS(view.getSchueler());
 			}
 		});
 		tltmNewItem.setImage(SWTResourceManager.getImage(MassiveAusleihe.class, "/icons/edit.png"));
@@ -377,8 +381,8 @@ public class MassiveAusleihe extends TitleDialog {
 	}
 	
 	private void addMediumRueck(){
-		if(schueler != null){
-			Ausleihe a = schueler.getAusleihe(txtMediumIsbnRueck.getText());
+		if(ausleihe.getS() != null){
+			Ausleihe a = ausleihe.getS().getAusleihe(txtMediumIsbnRueck.getText());
 			if(a == null){
 				txtMediumDecorationRueck.show();
 			}else{
@@ -392,7 +396,7 @@ public class MassiveAusleihe extends TitleDialog {
 	}
 	
 	private void addMediumAus(){
-		if(schueler != null){
+		if(ausleihe.getS() != null){
 			Buch b = Buch.getVerfuegbar(txtMediumIsbnAus.getText(), ausleihe.getVon(), ausleihe.getBis(), null);
 			if(b == null){
 				txtMediumDecorationAus.show();
@@ -434,7 +438,7 @@ public class MassiveAusleihe extends TitleDialog {
 			Ausleihe a = new Ausleihe();
 			a.setVon(ausleihe.getVon());
 			a.setDauer(ausleihe.getDauer());
-			a.setS(schueler);
+			a.setS(ausleihe.getS());
 			a.setB(b);
 			a.eintragen();
 			if(buecherAus.lastElement().equals(b)) ausleihe = a;
@@ -446,7 +450,7 @@ public class MassiveAusleihe extends TitleDialog {
 		DataBindingContext dbc = new DataBindingContext();
 		
 		IObservableValue tar = SWTObservables.observeText(txtSchuelerID);
-		IObservableValue obs = BeansObservables.observeValue(this, "schueler");
+		IObservableValue obs = BeansObservables.observeValue(ausleihe, "s");
 		UpdateValueStrategy str = new UpdateValueStrategy();
 		str.setAfterGetValidator(new NullValidator());
 		str.setConverter(new IConverter() {
@@ -492,7 +496,7 @@ public class MassiveAusleihe extends TitleDialog {
 		
 		
 		//Enabled
-		IObservableValue model = BeansObservables.observeValue(this, "schueler");
+		IObservableValue model = BeansObservables.observeValue(ausleihe, "s");
 		str = new UpdateValueStrategy();
 		str.setConverter(new NullBoolConverter());
 		dbc.bindValue(SWTObservables.observeEnabled(txtMediumIsbnAus), model, null, str);
@@ -500,10 +504,11 @@ public class MassiveAusleihe extends TitleDialog {
 		dbc.bindValue(SWTObservables.observeEnabled(btnSelectRueck), model, null, str);
 		dbc.bindValue(SWTObservables.observeEnabled(btnSelectAus), model, null, str);
 		
-		
 				
 		
 		TitleAreaDialogSupport.create(this, dbc);
+		
+		addValidation(dbc);
 		
 		return dbc;
 	}
@@ -533,19 +538,8 @@ public class MassiveAusleihe extends TitleDialog {
 	 * @return the schueler
 	 */
 	public Schueler getSchueler() {
-		return schueler;
+		return ausleihe.getS();
 	}
-
-	/**
-	 * @param schueler the schueler to set
-	 */
-	public void setSchueler(Schueler schueler) {
-		if(schueler != null){
-			AnmerkungDialog.getDialog(getShell(), schueler);
-		}
-		changes.firePropertyChange("schueler", this.schueler, this.schueler = schueler);
-	}
-	
 	
 
 	/**

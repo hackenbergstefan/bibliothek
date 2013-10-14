@@ -408,16 +408,25 @@ public class SchuelerTableView extends Composite {
 		if(b != null && b.getId() != -1){
 			if(data.contains(b)){
 				selectSchuelerNow(b);
-			}else data.addListChangeListener(new IListChangeListener() {
+			}else{
+				final IListChangeListener dataChangeListner = new IListChangeListener() {
 				
-				@Override
-				public void handleListChange(ListChangeEvent ev) {
-					if(data.contains(b)){
-						selectSchuelerNow(b);
-						data.removeListChangeListener(this);
+					@Override
+					public void handleListChange(ListChangeEvent ev) {
+						if(data.contains(b)){
+							selectSchuelerNow(b);
+						}
 					}
-				}
-			});
+				};
+				data.addListChangeListener(dataChangeListner);
+				data.addAfterChangeRun(new Runnable() {
+					
+					@Override
+					public void run() {
+						data.removeListChangeListener(dataChangeListner);
+					}
+				});
+			}
 		}
 	}
 	

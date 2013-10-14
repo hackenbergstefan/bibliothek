@@ -8,6 +8,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 
 import model.Ausleihe;
@@ -106,6 +107,7 @@ public class AusleihenTableView extends Composite {
 	private int widthStatus=170, widthVorgemerktAn=100, widthRueckdate=200;
 	
 	private final WritableList2 data = new WritableList2();
+	
 
 	/**
 	 * Create the composite.
@@ -434,7 +436,9 @@ public class AusleihenTableView extends Composite {
 		comparator.setColumn(4);
 		int dir = comparator.getDirection();
 		tableViewer.getTable().setSortDirection(dir);
+		tableViewer.getTable().setSortColumn(tblclmnStatus);
 		tableViewer.refresh();
+		
 	}
 	
 	
@@ -535,16 +539,24 @@ public class AusleihenTableView extends Composite {
 			
 			if(data.contains(ausleihe)){
 				selectAusleiheNow(ausleihe);
-			}else data.addListChangeListener(new IListChangeListener() {
-				
-				@Override
-				public void handleListChange(ListChangeEvent ev) {
-					if(data.contains(ausleihe)){
-						selectAusleiheNow(ausleihe);
-						data.removeListChangeListener(this);
+			}else {
+				final IListChangeListener dataChangeListener = new IListChangeListener() {
+					
+					@Override
+					public void handleListChange(ListChangeEvent ev) {
+						if(data.contains(ausleihe)){
+							selectAusleiheNow(ausleihe);
+						}
 					}
-				}
-			});
+				};
+				data.addListChangeListener(dataChangeListener);
+				data.addAfterChangeRun(new Runnable(){
+					@Override
+					public void run() {
+						data.removeListChangeListener(dataChangeListener);
+					}
+				});
+			}
 		}
 	}
 	

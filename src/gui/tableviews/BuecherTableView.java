@@ -604,18 +604,25 @@ public class BuecherTableView extends Composite {
 		if(b != null && b.getId() != -1){
 			if(data.contains(b)){
 				selectBuchNow(b);
-			}else data.addListChangeListener(new IListChangeListener() {
+			}else{
+				final IListChangeListener dataChangeListner = new IListChangeListener() {
 				
-				@Override
-				public void handleListChange(ListChangeEvent arg0) {
-					if(data.contains(b)){
-						selectBuchNow(b);
+					@Override
+					public void handleListChange(ListChangeEvent ev) {
+						if(data.contains(b)){
+							selectBuchNow(b);
+						}
 					}
-					if(arg0.diff.getDifferences() != null && arg0.diff.getDifferences()[0] != null && 
-							arg0.diff.getDifferences()[0].getPosition() == -1)
-						data.removeListChangeListener(this);
-				}
-			});
+				};
+				data.addListChangeListener(dataChangeListner);
+				data.addAfterChangeRun(new Runnable() {
+					
+					@Override
+					public void run() {
+						data.removeListChangeListener(dataChangeListner);
+					}
+				});
+			}
 			
 		}
 	}
