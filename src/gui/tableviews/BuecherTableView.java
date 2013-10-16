@@ -512,7 +512,12 @@ public class BuecherTableView extends Composite {
 	}
 	
 	public void updateTable(){
-		Buch.getAllBuecher(data);
+		updateTable(null);
+	}
+	
+	public void updateTable(Buch b){
+		Buch.getAllBuecher(data,b);
+		selectBuch(b);
 	}
 	
 	private void setProperties(){
@@ -600,44 +605,16 @@ public class BuecherTableView extends Composite {
 		return buch;
 	}
 	
-	public void selectBuch(final Buch b){
-		if(b != null && b.getId() != -1){
-			if(data.contains(b)){
-				selectBuchNow(b);
-			}else{
-				final IListChangeListener dataChangeListner = new IListChangeListener() {
-				
-					@Override
-					public void handleListChange(ListChangeEvent ev) {
-						if(data.contains(b)){
-							selectBuchNow(b);
-						}
-					}
-				};
-				data.addListChangeListener(dataChangeListner);
-				data.addAfterChangeRun(new Runnable() {
-					
-					@Override
-					public void run() {
-						data.removeListChangeListener(dataChangeListner);
-					}
-				});
-			}
-			
-		}
-	}
 	
-	private void selectBuchNow(Buch b){
+	public void selectBuch(Buch b){
+		if(b == null || b.getId() == -1) return;
 		if(buch!= null && buch.equals(b)){
-			tableViewer.setSelection(new StructuredSelection(b),true);
+			updateFilter();
 		}else{
-			clearValues();
+			filter.setSearchText(b.getIsbn(), b.getAutor(), b.getTitel(), b.getJahr(), b.getMedienart(), b.getStufe(), b.getStichworter(), b.getKategorie(), b.getStatus());
 			updateFilter();
 			
 			changes.firePropertyChange("buch", buch, buch = b);
-			tableViewer.setSelection(new StructuredSelection(b),true);
-			table.forceFocus();
-			enterValues(b);
 		}
 	}
 

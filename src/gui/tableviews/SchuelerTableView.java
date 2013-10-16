@@ -347,7 +347,11 @@ public class SchuelerTableView extends Composite {
 	}
 	
 	public void updateTable(){
-		Schueler.getAllSchueler(data);
+		updateTable(null);
+	}
+	public void updateTable(Schueler s){
+		Schueler.getAllSchueler(data,s);
+		selectSchueler(s);
 	}
 	
 	private void setProperties(){
@@ -405,42 +409,15 @@ public class SchuelerTableView extends Composite {
 	}
 	
 	public void selectSchueler(final Schueler b){
-		if(b != null && b.getId() != -1){
-			if(data.contains(b)){
-				selectSchuelerNow(b);
-			}else{
-				final IListChangeListener dataChangeListner = new IListChangeListener() {
-				
-					@Override
-					public void handleListChange(ListChangeEvent ev) {
-						if(data.contains(b)){
-							selectSchuelerNow(b);
-						}
-					}
-				};
-				data.addListChangeListener(dataChangeListner);
-				data.addAfterChangeRun(new Runnable() {
-					
-					@Override
-					public void run() {
-						data.removeListChangeListener(dataChangeListner);
-					}
-				});
-			}
-		}
-	}
-	
-	private void selectSchuelerNow(Schueler b){
+		if(b == null || b.getId() == -1) return;
+		
 		if(schueler != null && schueler.equals(b)){
-			tableViewer.setSelection(new StructuredSelection(b),true);
-		}else{
-			clearValues();
 			updateFilter();
-			changes.firePropertyChange("schueler", schueler, schueler = b);
-			tableViewer.setSelection(new StructuredSelection(b),true);
+		}else{
+			filter.setSearchText(""+b.getId(), getVorname(), b.getNachname(), b.getKlasse());
+			updateFilter();
 			
-			table.forceFocus();
-			enterValues(b);
+			changes.firePropertyChange("schueler", schueler, schueler = b);
 		}
 	}
 	

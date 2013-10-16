@@ -53,30 +53,18 @@ public class Buch implements Comparable<Buch>, IStringable, IDefault{
 		return ret;
 	}
 	
-	public static void getAllBuecher(final WritableList2 data){
-		data.clear();
-		new Thread(){
-			public void run() {
-				try{
-					Statement state = DBManager.getIt().getConnection().createStatement();
-					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_BUECHER);
-					final ArrayList<Buch> vec = new ArrayList<Buch>();
-					final MutableInteger curStart = new MutableInteger(0);
-					while(set.next()){
-						Buch b = new Buch(set);
-						vec.add(b);
-						if(vec.size()%100 == 0){
-							AsyncWritableListFiller.addToList(data, vec, curStart, 100);
-						}
-					}
-					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
-					set.close();
-					state.close();
-				}catch(SQLException ex){
-					Logger.logError(ex.getMessage());
-				}
-			}
-		}.start();
+	public static void getAllBuecher(final WritableList2 data, final Buch b){
+		String sql = "";
+		if(b == null){
+			sql = "SELECT * from "+DBManager.TABLE_BUECHER;
+		}else{
+			sql = "select * from "+DBManager.TABLE_BUECHER+" where id = "+b.getId()+" union all SELECT * from "+DBManager.TABLE_BUECHER+" where id!="+b.getId();
+		}
+		try {
+			AsyncWritableListFiller.fillListAsync(data, sql, Buch.class.getConstructor(ResultSet.class), 100);
+		} catch (Exception ex){
+			ex.printStackTrace();
+		}
 		
 	}
 	

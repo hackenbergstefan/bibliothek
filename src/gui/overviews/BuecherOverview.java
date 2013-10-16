@@ -117,6 +117,7 @@ public class BuecherOverview extends TitleDialog {
 	/**
 	 * Create the dialog.
 	 * @param parentShell
+	 * @wbp.parser.constructor
 	 */
 	public BuecherOverview(Shell parentShell, Buch b) {
 		super(parentShell);
@@ -573,6 +574,8 @@ public class BuecherOverview extends TitleDialog {
 		bindingContext.bindValue(obs, beanobs, null, strategy);
 		
 		TitleAreaDialogSupport.create(this, bindingContext);
+		
+		addValidation(bindingContext);
 		
 		return bindingContext;
 	}

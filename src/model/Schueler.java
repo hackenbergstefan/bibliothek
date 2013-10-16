@@ -393,30 +393,18 @@ public class Schueler implements Comparable<Schueler>, IStringable, IDefault{
 		return ret;
 	}
 	
-	public static void getAllSchueler(final WritableList2 data){
-		data.clear();
-		new Thread(){
-			public void run() {
-				try{
-					Statement state = DBManager.getIt().getConnection().createStatement();
-					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_SCHUELER);
-					final ArrayList<Schueler> vec = new ArrayList<Schueler>();
-					final MutableInteger curStart = new MutableInteger(0);
-					while(set.next()){
-						Schueler b = new Schueler(set);
-						vec.add(b);
-						if(vec.size()%10 == 0){
-							AsyncWritableListFiller.addToList(data, vec, curStart, 10);
-						}
-					}
-					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
-					set.close();
-					state.close();
-				}catch(SQLException ex){
-					Logger.logError(ex.getMessage());
-				}
-			}
-		}.start();
+	public static void getAllSchueler(final WritableList2 data, Schueler s){
+		String sql = "";
+		if(s == null || s.getId() == -1){
+			sql = "SELECT * from "+DBManager.TABLE_SCHUELER;
+		}else{
+			sql = "select * from "+DBManager.TABLE_SCHUELER+" where id="+s.getId()+" union all select * from "+DBManager.TABLE_SCHUELER+" where id!="+s.getId();
+		}
+		try {
+			AsyncWritableListFiller.fillListAsync(data, sql, Schueler.class.getConstructor(ResultSet.class), 20);
+		} catch (Exception e){
+			e.printStackTrace();
+		}
 		
 	}
 	

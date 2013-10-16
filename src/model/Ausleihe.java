@@ -10,6 +10,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import javax.naming.spi.DirStateFactory.Result;
+
 import org.eclipse.core.databinding.observable.list.WritableList;
 
 import log.Logger;
@@ -543,30 +545,18 @@ public class Ausleihe implements IDefault{
 		return ret;
 	}
 	
-	public static void getAllOpen(final WritableList2 data){
-		data.clear();
-		new Thread(){
-			public void run() {
-				try{
-					Statement state = DBManager.getIt().getConnection().createStatement();
-					ResultSet set = state.executeQuery("SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0");
-					final ArrayList<Ausleihe> vec = new ArrayList<Ausleihe>();
-					final MutableInteger curStart = new MutableInteger(0);
-					while(set.next()){
-						Ausleihe b = new Ausleihe(set);
-						vec.add(b);
-						if(vec.size()%20 == 0){
-							AsyncWritableListFiller.addToList(data, vec, curStart, 20);
-						}
-					}
-					AsyncWritableListFiller.addToListAllRest(data, vec, curStart);
-					set.close();
-					state.close();
-				}catch(SQLException ex){
-					Logger.logError(ex.getMessage());
-				}
+	public static void getAllOpen(final WritableList2 data, final Ausleihe a){
+		try {
+			String sqlstring = "";
+			if(a != null && a.id != -1){
+				sqlstring = "select * from "+DBManager.TABLE_AUSLEIHEN+" where id="+a.id+" union all select * from "+DBManager.TABLE_AUSLEIHEN+" where id!="+a.id+" and done=0";
+			}else{
+				sqlstring = "SELECT * from "+DBManager.TABLE_AUSLEIHEN+" where done = 0";
 			}
-		}.start();
+			AsyncWritableListFiller.fillListAsync(data, sqlstring, Ausleihe.class.getConstructor(ResultSet.class), 20);
+		} catch (Exception ex){
+			ex.printStackTrace();
+		}
 		
 	}
 	public static Vector<Ausleihe> getVorgemerkte(){

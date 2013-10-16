@@ -480,6 +480,7 @@ public class SchuelerOverview extends TitleDialog {
 		strategy.setConverter(new IdBoolConverter());
 		dbc.bindValue(obs, beanobs, null, strategy);
 		
+		addValidation(dbc);
 		
 		TitleAreaDialogSupport.create(this, dbc);
 	}

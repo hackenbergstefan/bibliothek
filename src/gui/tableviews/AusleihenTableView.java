@@ -443,6 +443,10 @@ public class AusleihenTableView extends Composite {
 	
 	
 	public void updateTable(){
+		updateTable(null);
+	}
+	
+	public void updateTable(Ausleihe a){
 		int state;
 		if(btnOffeneAusleihen.getSelection()){
 			state = 0;
@@ -463,13 +467,13 @@ public class AusleihenTableView extends Composite {
 		else state = -1;
 		
 		switch(state){
-			case 0: Ausleihe.getAllOpen(data); break;
+			case 0: Ausleihe.getAllOpen(data,a); break;
 			case 1: Ausleihe.getVorgemerkte(data); break;
 			case 2: Ausleihe.getAllTooLate(data); break;
 			case 3: Ausleihe.getAllDone(data); break;
 			default: break;
 		}
-		
+		selectAusleihe(a);
 	}
 	
 	private void collapseHistory(){
@@ -534,43 +538,20 @@ public class AusleihenTableView extends Composite {
 		return new Vector<Ausleihe>(data);
 	}
 	
-	public void selectAusleihe(final Ausleihe ausleihe){
-		if(ausleihe != null && ausleihe.getId() != -1){
-			
-			if(data.contains(ausleihe)){
-				selectAusleiheNow(ausleihe);
-			}else {
-				final IListChangeListener dataChangeListener = new IListChangeListener() {
-					
-					@Override
-					public void handleListChange(ListChangeEvent ev) {
-						if(data.contains(ausleihe)){
-							selectAusleiheNow(ausleihe);
-						}
-					}
-				};
-				data.addListChangeListener(dataChangeListener);
-				data.addAfterChangeRun(new Runnable(){
-					@Override
-					public void run() {
-						data.removeListChangeListener(dataChangeListener);
-					}
-				});
-			}
-		}
-	}
-	
-	private void selectAusleiheNow(Ausleihe ausleihe){
+	private void selectAusleihe(Ausleihe ausleihe){
+		if(ausleihe == null || ausleihe.getId()==-1) return;
 		if(this.ausleihe != null && this.ausleihe.equals(ausleihe)){
-			tableViewer.setSelection(new StructuredSelection(ausleihe),true);
+			//tableViewer.setSelection(new StructuredSelection(ausleihe),true);
+			updateFilter();
 		}else{
-			clearValues();
+			filter.setSearchText(""+ausleihe.getS().getId(), ausleihe.getB().getIsbn(), radioSchuelerVerliehenAn.getSelection());
 			updateFilter();
 			
 			changes.firePropertyChange("ausleihe", this.ausleihe, this.ausleihe = ausleihe);
-			tableViewer.setSelection(new StructuredSelection(AusleihenTableView.this.ausleihe),true);
-			table.forceFocus();
+			//tableViewer.setSelection(new StructuredSelection(AusleihenTableView.this.ausleihe),true);
+			//table.forceFocus();
 		}
+		
 	}
 	
 	/**

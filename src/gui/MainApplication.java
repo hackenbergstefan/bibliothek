@@ -414,8 +414,7 @@ public class MainApplication {
 	
 	public void selectMedium(Buch b){
 		tabFolder.setSelection(tbtmMedien);
-		buecherTableView.updateTable();
-		buecherTableView.selectBuch(b);
+		buecherTableView.updateTable(b);
 	}
 	
 	public void selectSchueler(Schueler s){
@@ -425,11 +424,11 @@ public class MainApplication {
 	}
 	
 	public void selectAusleihe(Ausleihe a){
+		System.out.println("MainApplication.selectAusleihe()");
 		tabFolder.setSelection(tbtmAusleihen);
 		if(a.isTooLate()) ausleihenTableView.btnVersumnisliste.setSelection(true);
 		else ausleihenTableView.btnOffeneAusleihen.setSelection(true);
-		ausleihenTableView.updateTable();
-		ausleihenTableView.selectAusleihe(a);
+		ausleihenTableView.updateTable(a);
 	}
 	
 	public void selectAusleihenTab(){
